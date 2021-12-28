@@ -68,3 +68,37 @@ class Status(BaseModel):
             Preparsed date value.
         """
         return f"{value[:4]}-{value[4:6]}-{value[6:]}"
+
+
+class System(BaseModel):
+    """Object holding the latest system information."""
+
+    array_tilt: Optional[float]
+    install_date: Optional[date]
+    inverter_brand: Optional[str]
+    inverter_power: Optional[int]
+    inverters: Optional[int]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    orientation: Optional[str]
+    panel_brand: Optional[str]
+    panel_power: Optional[int]
+    panels: Optional[int]
+    shade: Optional[str]
+    status_interval: Optional[int]
+    system_name: str
+    system_size: Optional[int]
+    zipcode: Optional[int]
+
+    @validator("install_date", pre=True)
+    @classmethod
+    def preparse_date(cls, value: str) -> str:  # noqa: F841
+        """Preparse date so Pydantic understands it.
+
+        Args:
+            value: Date value to preparse.
+
+        Returns:
+            Preparsed date value.
+        """
+        return f"{value[:4]}-{value[4:6]}-{value[6:]}"

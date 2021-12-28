@@ -152,3 +152,42 @@ async def test_get_status(aresponses):
     assert status.power_generation == 0
     assert status.temperature == 21.2
     assert status.voltage == 220.1
+
+
+@pytest.mark.asyncio
+async def test_get_system(aresponses):
+    """Test get system handling."""
+    aresponses.add(
+        "pvoutput.org",
+        "/service/r2/getsystem.jsp",
+        "GET",
+        aresponses.Response(
+            status=200,
+            headers={"Content-Type": "text/plain"},
+            text=(
+                "Frenck,5015,1234,17,295,JA solar JAM-300,1,5000,"
+                "SolarEdge SE5000H,S,20.0,Low,20180622,51.1234,6.1234,5;;0"
+            ),
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+        system = await pvoutput.system()
+
+    assert system.array_tilt == 20.0
+    assert system.install_date == date(2018, 6, 22)
+    assert system.inverter_brand == "SolarEdge SE5000H"
+    assert system.inverter_power == 5000
+    assert system.inverters == 1
+    assert system.latitude == 51.1234
+    assert system.longitude == 6.1234
+    assert system.orientation == "S"
+    assert system.panel_brand == "JA solar JAM-300"
+    assert system.panel_power == 295
+    assert system.panels == 17
+    assert system.shade == "Low"
+    assert system.status_interval == 5
+    assert system.system_name == "Frenck"
+    assert system.system_size == 5015
+    assert system.zipcode == 1234

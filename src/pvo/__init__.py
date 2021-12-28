@@ -1,5 +1,5 @@
 """Asynchronous client for the PVOutput API."""
-from .models import Status
+from .models import Status, System
 from .pvoutput import (
     PVOutput,
     PVOutputAuthenticationError,
@@ -13,4 +13,5 @@ __all__ = [
     "PVOutputConnectionError",
     "PVOutputError",
     "Status",
+    "System",
 ]

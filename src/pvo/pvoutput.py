@@ -16,7 +16,7 @@ from .exceptions import (
     PVOutputConnectionError,
     PVOutputError,
 )
-from .models import Status
+from .models import Status, System
 
 
 @dataclass
@@ -124,6 +124,37 @@ class PVOutput:
                     "voltage",
                 ],
                 data.split(","),
+            )
+        )
+
+    async def system(self) -> System:
+        """Retrieve system information.
+
+        Returns:
+            An PVOutput System object.
+        """
+        data = await self._request("getsystem.jsp")
+        return System.parse_obj(
+            zip(
+                [
+                    "system_name",
+                    "system_size",
+                    "zipcode",
+                    "panels",
+                    "panel_power",
+                    "panel_brand",
+                    "inverters",
+                    "inverter_power",
+                    "inverter_brand",
+                    "orientation",
+                    "array_tilt",
+                    "shade",
+                    "install_date",
+                    "latitude",
+                    "longitude",
+                    "status_interval",
+                ],
+                data.partition(";")[0].split(","),
             )
         )
 
