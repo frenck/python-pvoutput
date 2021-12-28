@@ -119,7 +119,7 @@ class PVOutput:
                     "power_generation",
                     "energy_consumption",
                     "power_consumption",
-                    "normalized_ouput",
+                    "normalized_output",
                     "temperature",
                     "voltage",
                 ],

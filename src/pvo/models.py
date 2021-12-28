@@ -15,7 +15,7 @@ class Status(BaseModel):
 
     energy_consumption: Optional[int]
     energy_generation: Optional[int]
-    normalized_ouput: Optional[float]
+    normalized_output: Optional[float]
     power_consumption: Optional[int]
     power_generation: Optional[int]
     temperature: Optional[float]
@@ -33,7 +33,7 @@ class Status(BaseModel):
     @validator(
         "energy_consumption",
         "energy_generation",
-        "normalized_ouput",
+        "normalized_output",
         "power_consumption",
         "power_generation",
         "temperature",
