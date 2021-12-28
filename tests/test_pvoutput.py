@@ -147,7 +147,7 @@ async def test_get_status(aresponses):
     assert status.reported_datetime == datetime(2021, 12, 22, 18, 0)
     assert status.energy_consumption is None
     assert status.energy_generation == 3636
-    assert status.normalized_ouput is None
+    assert status.normalized_output is None
     assert status.power_consumption is None
     assert status.power_generation == 0
     assert status.temperature == 21.2
