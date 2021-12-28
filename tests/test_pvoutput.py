@@ -164,7 +164,10 @@ async def test_get_system(aresponses):
         aresponses.Response(
             status=200,
             headers={"Content-Type": "text/plain"},
-            text="Frenck,5015,1234,17,295,JA solar JAM-300,1,5000,SolarEdge SE5000H,S,20.0,Low,20180622,51.1234,6.1234,5;;0",
+            text=(
+                "Frenck,5015,1234,17,295,JA solar JAM-300,1,5000,"
+                "SolarEdge SE5000H,S,20.0,Low,20180622,51.1234,6.1234,5;;0"
+            ),
         ),
     )
 
