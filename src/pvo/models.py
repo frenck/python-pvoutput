@@ -52,9 +52,7 @@ class Status(BaseModel):
         Returns:
             Filtered value.
         """
-        if value == "NaN":
-            return None
-        return value
+        return None if value == "NaN" else value
 
     @validator("reported_date", pre=True)
     @classmethod
