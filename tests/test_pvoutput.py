@@ -191,3 +191,27 @@ async def test_get_system(aresponses):
     assert system.system_name == "Frenck"
     assert system.system_size == 5015
     assert system.zipcode == "CO1"
+
+
+@pytest.mark.asyncio
+async def test_get_system_empty_install_date(aresponses):
+    """Test get system handling with an empty install date."""
+    aresponses.add(
+        "pvoutput.org",
+        "/service/r2/getsystem.jsp",
+        "GET",
+        aresponses.Response(
+            status=200,
+            headers={"Content-Type": "text/plain"},
+            text=(
+                "Frenck,5015,1234,17,295,JA solar JAM-300,1,5000,"
+                "SolarEdge SE5000H,S,20.0,Low,,51.1234,6.1234,5;;0"
+            ),
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+        system = await pvoutput.system()
+
+    assert system.install_date is None
