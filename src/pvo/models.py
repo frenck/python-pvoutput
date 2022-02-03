@@ -90,7 +90,7 @@ class System(BaseModel):
 
     @validator("install_date", pre=True)
     @classmethod
-    def preparse_date(cls, value: str) -> str | None:  # noqa: F841
+    def preparse_date(cls, value: str) -> str | None:    # noqa: F841
         """Preparse date so Pydantic understands it.
 
         Args:
@@ -99,7 +99,4 @@ class System(BaseModel):
         Returns:
             Preparsed date value.
         """
-        if not value:
-            return None
-
-        return f"{value[:4]}-{value[4:6]}-{value[6:]}"
+        return None if not value else f"{value[:4]}-{value[4:6]}-{value[6:]}"
