@@ -195,7 +195,7 @@ async def test_get_system(aresponses):
 
 @pytest.mark.asyncio
 async def test_get_system_empty_install_date(aresponses):
-    """Test get system handling with an emtpy install date."""
+    """Test get system handling with an empty install date."""
     aresponses.add(
         "pvoutput.org",
         "/service/r2/getsystem.jsp",
