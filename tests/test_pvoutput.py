@@ -190,4 +190,4 @@ async def test_get_system(aresponses):
     assert system.status_interval == 5
     assert system.system_name == "Frenck"
     assert system.system_size == 5015
-    assert system.zipcode == CO1
+    assert system.zipcode == "CO1"
