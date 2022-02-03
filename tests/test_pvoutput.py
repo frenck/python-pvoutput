@@ -165,7 +165,7 @@ async def test_get_system(aresponses):
             status=200,
             headers={"Content-Type": "text/plain"},
             text=(
-                "Frenck,5015,1234,17,295,JA solar JAM-300,1,5000,"
+                "Frenck,5015,CO1,17,295,JA solar JAM-300,1,5000,"
                 "SolarEdge SE5000H,S,20.0,Low,20180622,51.1234,6.1234,5;;0"
             ),
         ),
@@ -190,4 +190,4 @@ async def test_get_system(aresponses):
     assert system.status_interval == 5
     assert system.system_name == "Frenck"
     assert system.system_size == 5015
-    assert system.zipcode == 1234
+    assert system.zipcode == CO1
