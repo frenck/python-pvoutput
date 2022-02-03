@@ -52,9 +52,7 @@ class Status(BaseModel):
         Returns:
             Filtered value.
         """
-        if value == "NaN":
-            return None
-        return value
+        return None if value == "NaN" else value
 
     @validator("reported_date", pre=True)
     @classmethod
@@ -88,7 +86,7 @@ class System(BaseModel):
     status_interval: Optional[int]
     system_name: str
     system_size: Optional[int]
-    zipcode: Optional[int]
+    zipcode: Optional[str]
 
     @validator("install_date", pre=True)
     @classmethod
