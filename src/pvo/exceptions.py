@@ -13,5 +13,9 @@ class PVOutputConnectionError(PVOutputError):
     """PVOutput connection exception."""
 
 
+class PVOutputNoDataError(PVOutputError):
+    """PVOutput has no data available exception."""
+
+
 class InvalidSystemIDError(PVOutputError):
     """Invalid system ID exception."""

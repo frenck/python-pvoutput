@@ -15,6 +15,7 @@ from .exceptions import (
     PVOutputAuthenticationError,
     PVOutputConnectionError,
     PVOutputError,
+    PVOutputNoDataError,
 )
 from .models import Status, System
 
@@ -86,6 +87,10 @@ class PVOutput:
                 "Timeout occurred while connecting to the PVOutput API"
             ) from exception
         except ClientResponseError as exception:
+            if exception.status == 400 and uri.startswith("getstatus.jsp"):
+                raise PVOutputNoDataError(
+                    "PVOutput has no status data available for this system"
+                ) from exception
             if exception.status in [401, 403]:
                 raise PVOutputAuthenticationError(
                     "Authentication to the PVOutput API failed"
