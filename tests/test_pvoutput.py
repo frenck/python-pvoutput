@@ -11,6 +11,7 @@ from pvo.exceptions import (
     PVOutputAuthenticationError,
     PVOutputConnectionError,
     PVOutputError,
+    PVOutputNoDataError,
 )
 
 
@@ -152,6 +153,22 @@ async def test_get_status(aresponses):
     assert status.power_generation == 0
     assert status.temperature == 21.2
     assert status.voltage == 220.1
+
+
+@pytest.mark.asyncio
+async def test_get_status_no_data(aresponses):
+    """Test PVOutput status without data is handled."""
+    aresponses.add(
+        "pvoutput.org",
+        "/service/r2/getstatus.jsp",
+        "GET",
+        aresponses.Response(text="Bad Request!", status=400),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+        with pytest.raises(PVOutputNoDataError):
+            await pvoutput.status()
 
 
 @pytest.mark.asyncio
