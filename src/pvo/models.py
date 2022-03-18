@@ -6,6 +6,75 @@ from typing import Optional, Union
 
 from pydantic import BaseModel, validator
 
+class Statistic(BaseModel):
+    """Object holding the statistic information."""
+
+
+    energy_generated: Optional[int]
+    energy_exported: Optional[int]
+    average_generation: Optional[int]
+    minimum_generation: Optional[int]
+    maximum_generation: Optional[int]
+    average_efficiency: Optional[float]
+    outputs: Optional[int]
+    actual_date_from: date
+    actual_date_to: date
+    record_efficiency: Optional[float]
+    record_date: date
+
+    @property
+    def reported_datetime(self) -> datetime:
+        """Return the timestamp of the status data.
+
+        Returns:
+            A datetime object.
+        """
+        return datetime.combine(self.reported_date, self.reported_time)
+
+    @validator(
+        "energy_generated",
+        "energy_exported",
+        "average_generation",
+        "minimum_generation",
+        "maximum_generation",
+        "average_efficiency",
+        "outputs",
+        "record_efficiency",
+        pre=True,
+    )
+    @classmethod
+    def filter_not_a_number(
+        cls, value: Union[str, int, float]  # noqa: F841
+    ) -> Optional[Union[str, int, float]]:
+        """Filter out NaN values.
+
+        Args:
+            value: Value to filter.
+
+        Returns:
+            Filtered value.
+        """
+        return None if value == "NaN" else value
+
+    @validator(
+        "actual_date_from",
+        "actual_date_to",
+        "record_date",
+        pre=True
+    )
+    @classmethod
+    def preparse_date(cls, value: str) -> str:  # noqa: F841
+        """Preparse date so Pydantic understands it.
+
+        Args:
+            value: Date value to preparse.
+
+        Returns:
+            Preparsed date value.
+        """
+        return f"{value[:4]}-{value[4:6]}-{value[6:]}"
+
+
 
 class Status(BaseModel):
     """Object holding the latest status information and live output data."""
