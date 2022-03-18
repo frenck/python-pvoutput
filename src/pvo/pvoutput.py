@@ -132,6 +132,31 @@ class PVOutput:
             )
         )
 
+    async def getstatistic(self) -> Status:
+        """Retrieve system statistic information.
+
+        Returns:
+            An PVOutput Statistic object.
+        """
+        data = await self._request("getstatistic.jsp")
+        return Status.parse_obj(
+            zip(
+                [
+                    "reported_date",
+                    "reported_time",
+                    "energy_generation",
+                    "power_generation",
+                    "energy_consumption",
+                    "power_consumption",
+                    "normalized_output",
+                    "temperature",
+                    "voltage",
+                ],
+                data.split(","),
+            )
+        )
+
+
     async def system(self) -> System:
         """Retrieve system information.
 
