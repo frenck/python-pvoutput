@@ -17,7 +17,7 @@ from .exceptions import (
     PVOutputError,
     PVOutputNoDataError,
 )
-from .models import Status, System
+from .models import Status, System, Statistic
 
 
 @dataclass
@@ -132,25 +132,27 @@ class PVOutput:
             )
         )
 
-    async def getstatistic(self) -> Status:
+    async def getstatistic(self) -> Statistic:
         """Retrieve system statistic information.
 
         Returns:
             An PVOutput Statistic object.
         """
         data = await self._request("getstatistic.jsp")
-        return Status.parse_obj(
+        return Statistic.parse_obj(
             zip(
                 [
-                    "reported_date",
-                    "reported_time",
-                    "energy_generation",
-                    "power_generation",
-                    "energy_consumption",
-                    "power_consumption",
-                    "normalized_output",
-                    "temperature",
-                    "voltage",
+                    "energy_generated",
+                    "energy_exported",
+                    "average_generation",
+                    "minimum_generation",
+                    "maximum_generation",
+                    "average_efficiency",
+                    "outputs",
+                    "actual_date_from",
+                    "actual_date_to",
+                    "record_efficiency",
+                    "record_date",
                 ],
                 data.split(","),
             )
