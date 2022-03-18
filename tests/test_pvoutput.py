@@ -154,6 +154,36 @@ async def test_get_status(aresponses):
     assert status.temperature == 21.2
     assert status.voltage == 220.1
 
+@pytest.mark.asyncio
+async def test_get_getstatistic(aresponses):
+    """Test get statistic handling."""
+    aresponses.add(
+        "pvoutput.org",
+        "/service/r2/getstatistic.jsp",
+        "GET",
+        aresponses.Response(
+            status=200,
+            headers={"Content-Type": "text/plain"},
+            text="24600,14220,2220,800,3400,3.358,27,20210201,20210228,4.653,20210205",
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+        getstatistic = await pvoutput.getstatistic()
+
+    assert getstatistic.energy_generated == 24600
+    assert getstatistic.energy_exported == 14220
+    assert getstatistic.average_generation == 2220
+    assert getstatistic.minimum_generation == 800
+    assert getstatistic.maximum_generation == 3400
+    assert getstatistic.average_efficiency == 3.358
+    assert getstatistic.outputs == 27 
+    assert getstatistic.actual_date_from == date(2021, 2, 1)
+    assert getstatistic.actual_date_to == date(2021, 2, 28)
+    assert getstatistic.record_efficiency == 4.653
+    assert getstatistic.record_date == date(2021, 2, 5)
+
 
 @pytest.mark.asyncio
 async def test_get_status_no_data(aresponses):
