@@ -1,10 +1,13 @@
 """Asynchronous client for the PVOutput API."""
 # pylint: disable=protected-access
 import asyncio
-from datetime import date, datetime, time
+import socket
+from datetime import date, datetime, time, timezone
+from unittest.mock import patch
 
 import aiohttp
 import pytest
+from aresponses import Response, ResponsesMockServer
 
 from pvo import PVOutput
 from pvo.exceptions import (
@@ -15,8 +18,7 @@ from pvo.exceptions import (
 )
 
 
-@pytest.mark.asyncio
-async def test_request(aresponses):
+async def test_request(aresponses: ResponsesMockServer) -> None:
     """Test response is handled correctly."""
     aresponses.add(
         "pvoutput.org",
@@ -35,8 +37,7 @@ async def test_request(aresponses):
         await pvoutput.close()
 
 
-@pytest.mark.asyncio
-async def test_internal_session(aresponses):
+async def test_internal_session(aresponses: ResponsesMockServer) -> None:
     """Test response is handled correctly."""
     aresponses.add(
         "pvoutput.org",
@@ -53,8 +54,7 @@ async def test_internal_session(aresponses):
         assert response == "ok"
 
 
-@pytest.mark.asyncio
-async def test_post_request(aresponses):
+async def test_post_request(aresponses: ResponsesMockServer) -> None:
     """Test post requests are handled correctly."""
     aresponses.add(
         "pvoutput.org",
@@ -69,16 +69,18 @@ async def test_post_request(aresponses):
     async with aiohttp.ClientSession() as session:
         pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
         response = await pvoutput._request(
-            "test", method=aiohttp.hdrs.METH_POST, data={}
+            "test",
+            method=aiohttp.hdrs.METH_POST,
+            data={},
         )
         assert response == "ok"
 
 
-@pytest.mark.asyncio
-async def test_timeout(aresponses):
+async def test_timeout(aresponses: ResponsesMockServer) -> None:
     """Test request timeout from the API."""
+
     # Faking a timeout by sleeping
-    async def response_handler(_):
+    async def response_handler(_: aiohttp.ClientResponse) -> Response:
         """Response handler for this test."""
         await asyncio.sleep(0.2)
         return aresponses.Response(body="Goodmorning!")
@@ -87,14 +89,16 @@ async def test_timeout(aresponses):
 
     async with aiohttp.ClientSession() as session:
         pvoutput = PVOutput(
-            api_key="fake", system_id=12345, session=session, request_timeout=0.1
+            api_key="fake",
+            system_id=12345,
+            session=session,
+            request_timeout=0.1,
         )
         with pytest.raises(PVOutputConnectionError):
             assert await pvoutput._request("test")
 
 
-@pytest.mark.asyncio
-async def test_http_error400(aresponses):
+async def test_http_error400(aresponses: ResponsesMockServer) -> None:
     """Test HTTP 404 response handling."""
     aresponses.add(
         "pvoutput.org",
@@ -109,8 +113,7 @@ async def test_http_error400(aresponses):
             assert await pvoutput._request("test")
 
 
-@pytest.mark.asyncio
-async def test_http_error401(aresponses):
+async def test_http_error401(aresponses: ResponsesMockServer) -> None:
     """Test HTTP 401 response handling."""
     aresponses.add(
         "pvoutput.org",
@@ -125,8 +128,19 @@ async def test_http_error401(aresponses):
             assert await pvoutput._request("test")
 
 
-@pytest.mark.asyncio
-async def test_get_status(aresponses):
+async def test_communication_error() -> None:
+    """Test communication error handling."""
+    async with aiohttp.ClientSession() as session:
+        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+        with patch.object(
+            session,
+            "request",
+            side_effect=socket.gaierror,
+        ), pytest.raises(PVOutputConnectionError):
+            assert await pvoutput._request("test")
+
+
+async def test_get_status(aresponses: ResponsesMockServer) -> None:
     """Test get status handling."""
     aresponses.add(
         "pvoutput.org",
@@ -145,7 +159,14 @@ async def test_get_status(aresponses):
 
     assert status.reported_date == date(2021, 12, 22)
     assert status.reported_time == time(18, 0)
-    assert status.reported_datetime == datetime(2021, 12, 22, 18, 0)
+    assert status.reported_datetime == datetime(
+        2021,
+        12,
+        22,
+        18,
+        0,
+        tzinfo=timezone.utc,
+    )
     assert status.energy_consumption is None
     assert status.energy_generation == 3636
     assert status.normalized_output is None
@@ -155,8 +176,7 @@ async def test_get_status(aresponses):
     assert status.voltage == 220.1
 
 
-@pytest.mark.asyncio
-async def test_get_status_no_data(aresponses):
+async def test_get_status_no_data(aresponses: ResponsesMockServer) -> None:
     """Test PVOutput status without data is handled."""
     aresponses.add(
         "pvoutput.org",
@@ -171,8 +191,7 @@ async def test_get_status_no_data(aresponses):
             await pvoutput.status()
 
 
-@pytest.mark.asyncio
-async def test_get_system(aresponses):
+async def test_get_system(aresponses: ResponsesMockServer) -> None:
     """Test get system handling."""
     aresponses.add(
         "pvoutput.org",
@@ -210,8 +229,7 @@ async def test_get_system(aresponses):
     assert system.zipcode == "CO1"
 
 
-@pytest.mark.asyncio
-async def test_get_system_empty_install_date(aresponses):
+async def test_get_system_empty_install_date(aresponses: ResponsesMockServer) -> None:
     """Test get system handling with an empty install date."""
     aresponses.add(
         "pvoutput.org",

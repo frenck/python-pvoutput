@@ -12,8 +12,8 @@ async def main() -> None:
         api_key="API_KEY_FROM_PVOUTPUT_ORG",
         system_id=60017,
     ) as pvoutput:
-        status = await pvoutput.status()
-        print(status)
+        system = await pvoutput.system()
+        print(system)
 
 
 if __name__ == "__main__":

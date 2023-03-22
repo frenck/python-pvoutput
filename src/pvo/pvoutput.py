@@ -5,6 +5,7 @@ import asyncio
 import socket
 from dataclasses import dataclass
 from importlib import metadata
+from typing import Any
 
 import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
@@ -37,7 +38,7 @@ class PVOutput:
         uri: str,
         *,
         method: str = METH_GET,
-        data: dict | None = None,
+        data: dict[str, Any] | None = None,
     ) -> str:
         """Handle a request to the PVOutput API.
 
@@ -45,14 +46,17 @@ class PVOutput:
         the PVOutput API.
 
         Args:
+        ----
             uri: Request URI, without '/service/r2/'.
             method: HTTP Method to use.
             data: Dictionary of parameters to send to the PVOutput API.
 
         Returns:
+        -------
             The response body from the PVOutput API.
 
         Raises:
+        ------
             PVOutputAuthenticationError: If the API key is invalid.
             PVOutputConnectionError: An error occurred while communicating with
                 the PVOutput API.
@@ -83,35 +87,28 @@ class PVOutput:
                 )
                 response.raise_for_status()
         except asyncio.TimeoutError as exception:
-            raise PVOutputConnectionError(
-                "Timeout occurred while connecting to the PVOutput API"
-            ) from exception
+            msg = "Timeout occurred while connecting to the PVOutput API"
+            raise PVOutputConnectionError(msg) from exception
         except ClientResponseError as exception:
             if exception.status == 400 and uri.startswith("getstatus.jsp"):
-                raise PVOutputNoDataError(
-                    "PVOutput has no status data available for this system"
-                ) from exception
+                msg = "PVOutput has no status data available for this system"
+                raise PVOutputNoDataError(msg) from exception
             if exception.status in [401, 403]:
-                raise PVOutputAuthenticationError(
-                    "Authentication to the PVOutput API failed"
-                ) from exception
-            raise PVOutputError(
-                "Error occurred while connecting to the PVOutput API"
-            ) from exception
-        except (
-            ClientError,
-            socket.gaierror,
-        ) as exception:
-            raise PVOutputConnectionError(
-                "Error occurred while communicating with the PVOutput API"
-            ) from exception
+                msg = "Authentication to the PVOutput API failed"
+                raise PVOutputAuthenticationError(msg) from exception
+            msg = "Error occurred while connecting to the PVOutput API"
+            raise PVOutputError(msg) from exception
+        except (ClientError, socket.gaierror) as exception:
+            msg = "Error occurred while communicating with the PVOutput API"
+            raise PVOutputConnectionError(msg) from exception
 
         return await response.text()
 
     async def status(self) -> Status:
         """Retrieve system status information and live output data.
 
-        Returns:
+        Returns
+        -------
             An PVOutput Status object.
         """
         data = await self._request("getstatus.jsp")
@@ -129,13 +126,15 @@ class PVOutput:
                     "voltage",
                 ],
                 data.split(","),
-            )
+                strict=True,
+            ),
         )
 
     async def system(self) -> System:
         """Retrieve system information.
 
-        Returns:
+        Returns
+        -------
             An PVOutput System object.
         """
         data = await self._request("getsystem.jsp")
@@ -160,7 +159,8 @@ class PVOutput:
                     "status_interval",
                 ],
                 data.partition(";")[0].split(","),
-            )
+                strict=True,
+            ),
         )
 
     async def close(self) -> None:
@@ -171,15 +171,17 @@ class PVOutput:
     async def __aenter__(self) -> PVOutput:
         """Async enter.
 
-        Returns:
+        Returns
+        -------
             The PVOutput object.
         """
         return self
 
-    async def __aexit__(self, *_exc_info) -> None:
+    async def __aexit__(self, *_exc_info: Any) -> None:
         """Async exit.
 
         Args:
+        ----
             _exc_info: Exec type.
         """
         await self.close()
