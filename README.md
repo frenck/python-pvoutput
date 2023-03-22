@@ -140,7 +140,7 @@ SOFTWARE.
 
 [build-shield]: https://github.com/frenck/python-pvoutput/actions/workflows/tests.yaml/badge.svg
 [build]: https://github.com/frenck/python-pvoutput/actions/workflows/tests.yaml
-[codecov-shield]: https://codecov.io/gh/frenck/python-pvoutput/branch/master/graph/badge.svg
+[codecov-shield]: https://codecov.io/gh/frenck/python-pvoutput/branch/main/graph/badge.svg
 [codecov]: https://codecov.io/gh/frenck/python-pvoutput
 [contributors]: https://github.com/frenck/python-pvoutput/graphs/contributors
 [frenck]: https://github.com/frenck
