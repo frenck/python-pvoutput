@@ -57,7 +57,6 @@ plugins = ["covdefaults"]
 source = ["pvo"]
 
 [tool.coverage.report]
-exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 show_missing = true
 
 [tool.mypy]
