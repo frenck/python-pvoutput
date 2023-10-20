@@ -47,7 +47,7 @@ class Status(BaseModel):
     @classmethod
     def filter_not_a_number(
         cls,
-        value: str | int | float,
+        value: str | float,
     ) -> str | int | float | None:
         """Filter out NaN values.
 

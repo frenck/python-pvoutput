@@ -5,7 +5,7 @@ import asyncio
 import socket
 from dataclasses import dataclass
 from importlib import metadata
-from typing import Any
+from typing import Any, Self
 
 import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
@@ -168,7 +168,7 @@ class PVOutput:
         if self.session and self._close_session:
             await self.session.close()
 
-    async def __aenter__(self) -> PVOutput:
+    async def __aenter__(self) -> Self:
         """Async enter.
 
         Returns
@@ -177,7 +177,7 @@ class PVOutput:
         """
         return self
 
-    async def __aexit__(self, *_exc_info: Any) -> None:
+    async def __aexit__(self, *_exc_info: object) -> None:
         """Async exit.
 
         Args:
