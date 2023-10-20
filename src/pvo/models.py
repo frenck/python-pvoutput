@@ -3,7 +3,13 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timezone
 
-from pydantic import BaseModel, validator
+try:
+    from pydantic.v1 import BaseModel, validator
+except ImportError:  # pragma: no cover
+    from pydantic import (  # type: ignore[assignment] # pragma: no cover
+        BaseModel,
+        validator,
+    )
 
 
 class Status(BaseModel):
