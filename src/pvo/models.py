@@ -1,19 +1,59 @@
 """Asynchronous client for the PVOutput API."""
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date, datetime, time, timezone
 
-try:
-    from pydantic.v1 import BaseModel, validator
-except ImportError:  # pragma: no cover
-    from pydantic import (  # type: ignore[assignment] # pragma: no cover
-        BaseModel,
-        validator,
-    )
+from mashumaro import DataClassDictMixin
+from mashumaro.config import BaseConfig
+from mashumaro.types import SerializationStrategy
 
 
-class Status(BaseModel):
+class NaNisNone(SerializationStrategy):
+    """The `NaN` string value should result in None."""
+
+    def serialize(self, value: float | None) -> float | str:
+        """Serialize NoneType into NaN."""
+        if value is None:  # pragma: no cover
+            return "NaN"
+        return value
+
+    def deserialize(self, value: float | str) -> float | None:
+        """Deserialize NaN into NoneType."""
+        if value == "NaN":
+            return None
+        return float(value)
+
+
+class DateStrategy(SerializationStrategy):
+    """String serialization strategy to handle the date format."""
+
+    def serialize(self, value: date) -> str:
+        """Serialize date to their specific format."""
+        return datetime.strftime(value, "%Y%m%d")
+
+    def deserialize(self, value: str) -> date | None:
+        """Deserialize their date format to a date."""
+        if not value:
+            return None
+
+        return datetime.strptime(value, "%Y%m%d").replace(tzinfo=timezone.utc).date()
+
+
+@dataclass
+# pylint: disable-next=too-many-instance-attributes
+class Status(DataClassDictMixin):
     """Object holding the latest status information and live output data."""
+
+    # pylint: disable-next=too-few-public-methods
+    class Config(BaseConfig):
+        """Mashumaro configuration."""
+
+        serialization_strategy = {  # noqa: RUF012
+            date: DateStrategy(),
+            float: NaNisNone(),
+            int: NaNisNone(),
+        }
 
     reported_date: date
     reported_time: time
@@ -40,51 +80,21 @@ class Status(BaseModel):
             tzinfo=timezone.utc,
         )
 
-    @validator(
-        "energy_consumption",
-        "energy_generation",
-        "normalized_output",
-        "power_consumption",
-        "power_generation",
-        "temperature",
-        "voltage",
-        pre=True,
-    )
-    @classmethod
-    def filter_not_a_number(
-        cls,
-        value: str | float,
-    ) -> str | int | float | None:
-        """Filter out NaN values.
 
-        Args:
-        ----
-            value: Value to filter.
-
-        Returns:
-        -------
-            Filtered value.
-        """
-        return None if value == "NaN" else value
-
-    @validator("reported_date", pre=True)
-    @classmethod
-    def preparse_date(cls, value: str) -> str:
-        """Preparse date so Pydantic understands it.
-
-        Args:
-        ----
-            value: Date value to preparse.
-
-        Returns:
-        -------
-            Preparsed date value.
-        """
-        return f"{value[:4]}-{value[4:6]}-{value[6:]}"
-
-
-class System(BaseModel):
+@dataclass
+# pylint: disable-next=too-many-instance-attributes
+class System(DataClassDictMixin):
     """Object holding the latest system information."""
+
+    # pylint: disable-next=too-few-public-methods
+    class Config(BaseConfig):
+        """Mashumaro configuration."""
+
+        serialization_strategy = {  # noqa: RUF012
+            date: DateStrategy(),
+            float: NaNisNone(),
+            int: NaNisNone(),
+        }
 
     array_tilt: float | None
     install_date: date | None
@@ -102,21 +112,3 @@ class System(BaseModel):
     system_name: str
     system_size: int | None
     zipcode: str | None
-
-    @validator("install_date", pre=True)
-    @classmethod
-    def preparse_date(cls, value: str) -> str | None:
-        """Preparse date so Pydantic understands it.
-
-        Args:
-        ----
-            value: Date value to preparse.
-
-        Returns:
-        -------
-            Preparsed date value.
-        """
-        if not value:
-            return None
-
-        return f"{value[:4]}-{value[4:6]}-{value[6:]}"
