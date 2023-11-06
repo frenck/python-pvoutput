@@ -112,21 +112,23 @@ class PVOutput:
             An PVOutput Status object.
         """
         data = await self._request("getstatus.jsp")
-        return Status.parse_obj(
-            zip(
-                [
-                    "reported_date",
-                    "reported_time",
-                    "energy_generation",
-                    "power_generation",
-                    "energy_consumption",
-                    "power_consumption",
-                    "normalized_output",
-                    "temperature",
-                    "voltage",
-                ],
-                data.split(","),
-                strict=True,
+        return Status.from_dict(
+            dict(
+                zip(
+                    [
+                        "reported_date",
+                        "reported_time",
+                        "energy_generation",
+                        "power_generation",
+                        "energy_consumption",
+                        "power_consumption",
+                        "normalized_output",
+                        "temperature",
+                        "voltage",
+                    ],
+                    data.split(","),
+                    strict=True,
+                )
             ),
         )
 
@@ -138,28 +140,30 @@ class PVOutput:
             An PVOutput System object.
         """
         data = await self._request("getsystem.jsp")
-        return System.parse_obj(
-            zip(
-                [
-                    "system_name",
-                    "system_size",
-                    "zipcode",
-                    "panels",
-                    "panel_power",
-                    "panel_brand",
-                    "inverters",
-                    "inverter_power",
-                    "inverter_brand",
-                    "orientation",
-                    "array_tilt",
-                    "shade",
-                    "install_date",
-                    "latitude",
-                    "longitude",
-                    "status_interval",
-                ],
-                data.partition(";")[0].split(","),
-                strict=True,
+        return System.from_dict(
+            dict(
+                zip(
+                    [
+                        "system_name",
+                        "system_size",
+                        "zipcode",
+                        "panels",
+                        "panel_power",
+                        "panel_brand",
+                        "inverters",
+                        "inverter_power",
+                        "inverter_brand",
+                        "orientation",
+                        "array_tilt",
+                        "shade",
+                        "install_date",
+                        "latitude",
+                        "longitude",
+                        "status_interval",
+                    ],
+                    data.partition(";")[0].split(","),
+                    strict=True,
+                )
             ),
         )
 

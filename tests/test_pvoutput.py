@@ -8,6 +8,7 @@ from unittest.mock import patch
 import aiohttp
 import pytest
 from aresponses import Response, ResponsesMockServer
+from syrupy.assertion import SnapshotAssertion
 
 from pvo import PVOutput
 from pvo.exceptions import (
@@ -140,7 +141,9 @@ async def test_communication_error() -> None:
             assert await pvoutput._request("test")
 
 
-async def test_get_status(aresponses: ResponsesMockServer) -> None:
+async def test_get_status(
+    aresponses: ResponsesMockServer, snapshot: SnapshotAssertion
+) -> None:
     """Test get status handling."""
     aresponses.add(
         "pvoutput.org",
@@ -175,6 +178,8 @@ async def test_get_status(aresponses: ResponsesMockServer) -> None:
     assert status.temperature == 21.2
     assert status.voltage == 220.1
 
+    assert status.to_dict() == snapshot
+
 
 async def test_get_status_no_data(aresponses: ResponsesMockServer) -> None:
     """Test PVOutput status without data is handled."""
@@ -191,7 +196,9 @@ async def test_get_status_no_data(aresponses: ResponsesMockServer) -> None:
             await pvoutput.status()
 
 
-async def test_get_system(aresponses: ResponsesMockServer) -> None:
+async def test_get_system(
+    aresponses: ResponsesMockServer, snapshot: SnapshotAssertion
+) -> None:
     """Test get system handling."""
     aresponses.add(
         "pvoutput.org",
@@ -227,6 +234,8 @@ async def test_get_system(aresponses: ResponsesMockServer) -> None:
     assert system.system_name == "Frenck"
     assert system.system_size == 5015
     assert system.zipcode == "CO1"
+
+    assert system.to_dict() == snapshot
 
 
 async def test_get_system_empty_install_date(aresponses: ResponsesMockServer) -> None:
