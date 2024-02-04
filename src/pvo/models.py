@@ -73,6 +73,7 @@ class Status(DataClassDictMixin):
         Returns
         -------
             A datetime object.
+
         """
         return datetime.combine(
             self.reported_date,
