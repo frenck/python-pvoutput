@@ -61,6 +61,7 @@ class PVOutput:
                 the PVOutput API.
             PVOutputError: Received an unexpected response from the PVOutput
                 API.
+
         """
         version = metadata.version(__package__)
         url = URL("https://pvoutput.org/service/r2/").join(URL(uri))
@@ -109,6 +110,7 @@ class PVOutput:
         Returns
         -------
             An PVOutput Status object.
+
         """
         data = await self._request("getstatus.jsp")
         return Status.from_dict(
@@ -137,6 +139,7 @@ class PVOutput:
         Returns
         -------
             An PVOutput System object.
+
         """
         data = await self._request("getsystem.jsp")
         return System.from_dict(
@@ -177,6 +180,7 @@ class PVOutput:
         Returns
         -------
             The PVOutput object.
+
         """
         return self
 
@@ -186,5 +190,6 @@ class PVOutput:
         Args:
         ----
             _exc_info: Exec type.
+
         """
         await self.close()
