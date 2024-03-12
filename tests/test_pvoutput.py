@@ -1,4 +1,5 @@
 """Asynchronous client for the PVOutput API."""
+
 # pylint: disable=protected-access
 import asyncio
 import socket

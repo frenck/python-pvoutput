@@ -1,4 +1,5 @@
 """Asynchronous client for the PVOutput API."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
