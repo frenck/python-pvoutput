@@ -134,11 +134,14 @@ async def test_communication_error() -> None:
     """Test communication error handling."""
     async with aiohttp.ClientSession() as session:
         pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        with patch.object(
-            session,
-            "request",
-            side_effect=socket.gaierror,
-        ), pytest.raises(PVOutputConnectionError):
+        with (
+            patch.object(
+                session,
+                "request",
+                side_effect=socket.gaierror,
+            ),
+            pytest.raises(PVOutputConnectionError),
+        ):
             assert await pvoutput._request("test")
 
 
