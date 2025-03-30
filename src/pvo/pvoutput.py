@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import socket
 from dataclasses import dataclass
-from importlib import metadata
 from typing import Any, Self
 
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
@@ -64,12 +63,10 @@ class PVOutput:
                 API.
 
         """
-        version = metadata.version(__package__)
         url = URL("https://pvoutput.org/service/r2/").join(URL(uri))
 
         headers = {
             "Accept": "application/json",
-            "User-Agent": f"PythonPVOutput/{version}",
             "X-Pvoutput-Apikey": self.api_key,
             "X-Pvoutput-SystemId": str(self.system_id),
         }
