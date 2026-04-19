@@ -9,6 +9,7 @@ import aiohttp
 import pytest
 from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
+from yarl import URL
 
 from pvo import PVOutput
 from pvo.exceptions import (
@@ -214,6 +215,96 @@ async def test_get_system(snapshot: SnapshotAssertion) -> None:
     assert system.zipcode == "CO1"
 
     assert system.to_dict() == snapshot
+
+
+async def test_add_status() -> None:
+    """Test adding a status update."""
+    with aioresponses() as mocked:
+        mocked.post(
+            "https://pvoutput.org/service/r2/addstatus.jsp",
+            status=200,
+            body="OK 200: Added Status",
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            await pvoutput.add_status(
+                reported_date=date(2021, 12, 22),
+                reported_time=time(14, 30),
+                energy_generation=3636,
+                power_generation=500,
+                energy_consumption=1200,
+                power_consumption=350,
+                temperature=21.2,
+                voltage=220.1,
+            )
+
+        assert mocked.requests is not None
+        data = mocked.requests[
+            ("POST", URL("https://pvoutput.org/service/r2/addstatus.jsp"))
+        ][0].kwargs["data"]
+        assert data["d"] == "20211222"
+        assert data["t"] == "14:30"
+        assert data["v1"] == "3636"
+        assert data["v2"] == "500"
+        assert data["v3"] == "1200"
+        assert data["v4"] == "350"
+        assert data["v5"] == "21.2"
+        assert data["v6"] == "220.1"
+        assert "c1" not in data
+        assert "n" not in data
+
+
+async def test_add_status_with_flags() -> None:
+    """Test adding a status update with cumulative and net flags."""
+    with aioresponses() as mocked:
+        mocked.post(
+            "https://pvoutput.org/service/r2/addstatus.jsp",
+            status=200,
+            body="OK 200: Added Status",
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            await pvoutput.add_status(
+                reported_date=date(2021, 12, 22),
+                reported_time=time(14, 30),
+                energy_generation=50000,
+                energy_consumption=12000,
+                cumulative=True,
+                net=True,
+            )
+
+        assert mocked.requests is not None
+        data = mocked.requests[
+            ("POST", URL("https://pvoutput.org/service/r2/addstatus.jsp"))
+        ][0].kwargs["data"]
+        assert data["c1"] == "1"
+        assert data["n"] == "1"
+        assert data["v1"] == "50000"
+        assert data["v3"] == "12000"
+
+
+async def test_add_status_defaults_date_time() -> None:
+    """Test adding a status defaults to current date and time."""
+    with aioresponses() as mocked:
+        mocked.post(
+            "https://pvoutput.org/service/r2/addstatus.jsp",
+            status=200,
+            body="OK 200: Added Status",
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            await pvoutput.add_status(power_generation=500)
+
+        assert mocked.requests is not None
+        data = mocked.requests[
+            ("POST", URL("https://pvoutput.org/service/r2/addstatus.jsp"))
+        ][0].kwargs["data"]
+        assert "d" in data
+        assert "t" in data
+        assert data["v2"] == "500"
 
 
 async def test_get_system_empty_install_date() -> None:
