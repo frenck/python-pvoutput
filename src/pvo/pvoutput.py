@@ -47,7 +47,7 @@ class PVOutput:
         Args:
         ----
             uri: Request URI, without '/service/r2/'.
-            method: HTTP Method to use.
+            method: HTTP method to use.
             data: Dictionary of parameters to send to the PVOutput API.
 
         Returns:
@@ -84,7 +84,7 @@ class PVOutput:
                     headers=headers,
                 )
                 response.raise_for_status()
-        except asyncio.TimeoutError as exception:
+        except TimeoutError as exception:
             msg = "Timeout occurred while connecting to the PVOutput API"
             raise PVOutputConnectionError(msg) from exception
         except ClientResponseError as exception:
@@ -107,7 +107,7 @@ class PVOutput:
 
         Returns
         -------
-            An PVOutput Status object.
+            A PVOutput Status object.
 
         """
         data = await self._request("getstatus.jsp")
@@ -136,7 +136,7 @@ class PVOutput:
 
         Returns
         -------
-            An PVOutput System object.
+            A PVOutput System object.
 
         """
         data = await self._request("getsystem.jsp")
@@ -187,7 +187,7 @@ class PVOutput:
 
         Args:
         ----
-            _exc_info: Exec type.
+            _exc_info: Exception info.
 
         """
         await self.close()

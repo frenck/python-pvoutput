@@ -8,14 +8,14 @@
 
 [![Build Status][build-shield]][build]
 [![Code Coverage][codecov-shield]][codecov]
-[![Quality Gate Status][sonarcloud-shield]][sonarcloud]
+[![OpenSSF Scorecard][scorecard-shield]][scorecard]
 [![Open in Dev Containers][devcontainer-shield]][devcontainer]
 
 [![Sponsor Frenck via GitHub Sponsors][github-sponsors-shield]][github-sponsors]
 
 [![Support Frenck on Patreon][patreon-shield]][patreon]
 
-Asynchronous client for the PVOutput API.
+Asynchronous Python client for the PVOutput API.
 
 ## About
 
@@ -37,8 +37,8 @@ import asyncio
 from pvo import PVOutput
 
 
-async def main():
-    """Show example on using the PVOutput API client."""
+async def main() -> None:
+    """Show example of using the PVOutput API client."""
     async with PVOutput(
         api_key="API_KEY_FROM_PVOUTPUT_ORG",
         system_id=60017,
@@ -77,20 +77,15 @@ Thank you for being involved! :heart_eyes:
 
 ## Setting up development environment
 
-The easiest way to start, is by opening a CodeSpace here on GitHub, or by using
-the [Dev Container][devcontainer] feature of Visual Studio Code.
-
-[![Open in Dev Containers][devcontainer-shield]][devcontainer]
-
 This Python project is fully managed using the [Poetry][poetry] dependency
-manager. But also relies on the use of NodeJS for certain checks during
+manager, but also relies on the use of NodeJS for certain checks during
 development.
 
 You need at least:
 
 - Python 3.11+
 - [Poetry][poetry-install]
-- NodeJS 18+ (including NPM)
+- NodeJS 24+ (including NPM)
 
 To install all packages, including all development requirements:
 
@@ -99,12 +94,12 @@ npm install
 poetry install
 ```
 
-As this repository uses the [pre-commit][pre-commit] framework, all changes
+As this repository uses the [prek][prek] framework, all changes
 are linted and tested with each commit. You can run all checks and tests
 manually, using the following command:
 
 ```bash
-poetry run pre-commit run --all-files
+poetry run prek run --all-files
 ```
 
 To run just the Python tests:
@@ -124,7 +119,7 @@ check [the contributor's page][contributors].
 
 MIT License
 
-Copyright (c) 2023-2025 Franck Nijhof
+Copyright (c) 2023-2026 Franck Nijhof
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -156,18 +151,18 @@ SOFTWARE.
 [github-sponsors]: https://github.com/sponsors/frenck
 [keepchangelog]: http://keepachangelog.com/en/1.0.0/
 [license-shield]: https://img.shields.io/github/license/frenck/python-pvoutput.svg
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2025.svg
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2026.svg
 [patreon-shield]: https://frenck.dev/wp-content/uploads/2019/12/patreon.png
 [patreon]: https://www.patreon.com/frenck
 [poetry-install]: https://python-poetry.org/docs/#installation
 [poetry]: https://python-poetry.org
-[pre-commit]: https://pre-commit.com/
+[prek]: https://github.com/j178/prek
 [project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
+[pvoutput]: https://pvoutput.org/
 [pypi]: https://pypi.org/project/pvo/
 [python-versions-shield]: https://img.shields.io/pypi/pyversions/pvo
 [releases-shield]: https://img.shields.io/github/release/frenck/python-pvoutput.svg
 [releases]: https://github.com/frenck/python-pvoutput/releases
+[scorecard]: https://scorecard.dev/viewer/?uri=github.com/frenck/python-pvoutput
+[scorecard-shield]: https://api.scorecard.dev/projects/github.com/frenck/python-pvoutput/badge
 [semver]: http://semver.org/spec/v2.0.0.html
-[pvoutput]: https://pvoutput.org/
-[sonarcloud-shield]: https://sonarcloud.io/api/project_badges/measure?project=frenck_python-pvoutput&metric=alert_status
-[sonarcloud]: https://sonarcloud.io/summary/new_code?id=frenck_python-pvoutput

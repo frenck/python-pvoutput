@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 
 from mashumaro import DataClassDictMixin
 from mashumaro.config import BaseConfig
@@ -30,15 +30,15 @@ class DateStrategy(SerializationStrategy):
     """String serialization strategy to handle the date format."""
 
     def serialize(self, value: date) -> str:
-        """Serialize date to their specific format."""
+        """Serialize a date to its specific format."""
         return datetime.strftime(value, "%Y%m%d")
 
     def deserialize(self, value: str) -> date | None:
-        """Deserialize their date format to a date."""
+        """Deserialize a date string to a date object."""
         if not value:
             return None
 
-        return datetime.strptime(value, "%Y%m%d").replace(tzinfo=timezone.utc).date()
+        return datetime.strptime(value, "%Y%m%d").replace(tzinfo=UTC).date()
 
 
 @dataclass
@@ -79,7 +79,7 @@ class Status(DataClassDictMixin):
         return datetime.combine(
             self.reported_date,
             self.reported_time,
-            tzinfo=timezone.utc,
+            tzinfo=UTC,
         )
 
 
