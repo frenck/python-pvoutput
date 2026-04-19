@@ -7,7 +7,7 @@ from pvo import PVOutput
 
 
 async def main() -> None:
-    """Show example on using the PVOutput API client."""
+    """Show example of using the PVOutput API client."""
     async with PVOutput(
         api_key="API_KEY_FROM_PVOUTPUT_ORG",
         system_id=60017,

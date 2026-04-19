@@ -1,14 +1,13 @@
 """Asynchronous client for the PVOutput API."""
 
 # pylint: disable=protected-access
-import asyncio
 import socket
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 from unittest.mock import patch
 
 import aiohttp
 import pytest
-from aresponses import Response, ResponsesMockServer
+from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
 from pvo import PVOutput
@@ -20,114 +19,101 @@ from pvo.exceptions import (
 )
 
 
-async def test_request(aresponses: ResponsesMockServer) -> None:
+async def test_request() -> None:
     """Test response is handled correctly."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/test",
-        "GET",
-        aresponses.Response(
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/test",
             status=200,
-            headers={"Content-Type": "text/plain"},
-            text="ok",
-        ),
-    )
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        response = await pvoutput._request("test")
-        assert response == "ok"
-        await pvoutput.close()
+            body="ok",
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            response = await pvoutput._request("test")
+            assert response == "ok"
+            await pvoutput.close()
 
 
-async def test_internal_session(aresponses: ResponsesMockServer) -> None:
+async def test_internal_session() -> None:
     """Test response is handled correctly."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/test",
-        "GET",
-        aresponses.Response(
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/test",
             status=200,
-            headers={"Content-Type": "text/plain"},
-            text="ok",
-        ),
-    )
-    async with PVOutput(api_key="fake", system_id=12345) as pvoutput:
-        response = await pvoutput._request("test")
-        assert response == "ok"
+            body="ok",
+            content_type="text/plain",
+        )
+        async with PVOutput(api_key="fake", system_id=12345) as pvoutput:
+            response = await pvoutput._request("test")
+            assert response == "ok"
 
 
-async def test_post_request(aresponses: ResponsesMockServer) -> None:
+async def test_post_request() -> None:
     """Test post requests are handled correctly."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/test",
-        "POST",
-        aresponses.Response(
+    with aioresponses() as mocked:
+        mocked.post(
+            "https://pvoutput.org/service/r2/test",
             status=200,
-            headers={"Content-Type": "text/plain"},
-            text="ok",
-        ),
-    )
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        response = await pvoutput._request(
-            "test",
-            method=aiohttp.hdrs.METH_POST,
-            data={},
+            body="ok",
+            content_type="text/plain",
         )
-        assert response == "ok"
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            response = await pvoutput._request(
+                "test",
+                method=aiohttp.hdrs.METH_POST,
+                data={},
+            )
+            assert response == "ok"
 
 
-async def test_timeout(aresponses: ResponsesMockServer) -> None:
+async def test_timeout() -> None:
     """Test request timeout from the API."""
-
-    # Faking a timeout by sleeping
-    async def response_handler(_: aiohttp.ClientResponse) -> Response:
-        """Response handler for this test."""
-        await asyncio.sleep(0.2)
-        return aresponses.Response(body="Goodmorning!")
-
-    aresponses.add("pvoutput.org", "/service/r2/test", "GET", response_handler)
-
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(
-            api_key="fake",
-            system_id=12345,
-            session=session,
-            request_timeout=0.1,
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/test",
+            exception=TimeoutError(),
         )
-        with pytest.raises(PVOutputConnectionError):
-            assert await pvoutput._request("test")
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(
+                api_key="fake",
+                system_id=12345,
+                session=session,
+                request_timeout=0.1,
+            )
+            with pytest.raises(PVOutputConnectionError):
+                assert await pvoutput._request("test")
 
 
-async def test_http_error400(aresponses: ResponsesMockServer) -> None:
+async def test_http_error400() -> None:
     """Test HTTP 404 response handling."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/test",
-        "GET",
-        aresponses.Response(text="OMG PUPPIES!", status=404),
-    )
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/test",
+            status=404,
+            body="OMG PUPPIES!",
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            with pytest.raises(PVOutputError):
+                assert await pvoutput._request("test")
 
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        with pytest.raises(PVOutputError):
-            assert await pvoutput._request("test")
 
-
-async def test_http_error401(aresponses: ResponsesMockServer) -> None:
+async def test_http_error401() -> None:
     """Test HTTP 401 response handling."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/test",
-        "GET",
-        aresponses.Response(text="Access denied!", status=401),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        with pytest.raises(PVOutputAuthenticationError):
-            assert await pvoutput._request("test")
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/test",
+            status=401,
+            body="Access denied!",
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            with pytest.raises(PVOutputAuthenticationError):
+                assert await pvoutput._request("test")
 
 
 async def test_communication_error() -> None:
@@ -145,24 +131,18 @@ async def test_communication_error() -> None:
             assert await pvoutput._request("test")
 
 
-async def test_get_status(
-    aresponses: ResponsesMockServer, snapshot: SnapshotAssertion
-) -> None:
+async def test_get_status(snapshot: SnapshotAssertion) -> None:
     """Test get status handling."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/getstatus.jsp",
-        "GET",
-        aresponses.Response(
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/getstatus.jsp",
             status=200,
-            headers={"Content-Type": "text/plain"},
-            text="20211222,18:00,3636,0,NaN,NaN,NaN,21.2,220.1",
-        ),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        status = await pvoutput.status()
+            body="20211222,18:00,3636,0,NaN,NaN,NaN,21.2,220.1",
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            status = await pvoutput.status()
 
     assert status.reported_date == date(2021, 12, 22)
     assert status.reported_time == time(18, 0)
@@ -172,7 +152,7 @@ async def test_get_status(
         22,
         18,
         0,
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
     assert status.energy_consumption is None
     assert status.energy_generation == 3636
@@ -185,42 +165,36 @@ async def test_get_status(
     assert status.to_dict() == snapshot
 
 
-async def test_get_status_no_data(aresponses: ResponsesMockServer) -> None:
+async def test_get_status_no_data() -> None:
     """Test PVOutput status without data is handled."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/getstatus.jsp",
-        "GET",
-        aresponses.Response(text="Bad Request!", status=400),
-    )
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/getstatus.jsp",
+            status=400,
+            body="Bad Request!",
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            with pytest.raises(PVOutputNoDataError):
+                await pvoutput.status()
 
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        with pytest.raises(PVOutputNoDataError):
-            await pvoutput.status()
 
-
-async def test_get_system(
-    aresponses: ResponsesMockServer, snapshot: SnapshotAssertion
-) -> None:
+async def test_get_system(snapshot: SnapshotAssertion) -> None:
     """Test get system handling."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/getsystem.jsp",
-        "GET",
-        aresponses.Response(
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/getsystem.jsp",
             status=200,
-            headers={"Content-Type": "text/plain"},
-            text=(
+            body=(
                 "Frenck,5015,CO1,17,295,JA solar JAM-300,1,5000,"
                 "SolarEdge SE5000H,S,20.0,Low,20180622,51.1234,6.1234,5;;0"
             ),
-        ),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        system = await pvoutput.system()
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            system = await pvoutput.system()
 
     assert system.array_tilt == 20.0
     assert system.install_date == date(2018, 6, 22)
@@ -242,24 +216,20 @@ async def test_get_system(
     assert system.to_dict() == snapshot
 
 
-async def test_get_system_empty_install_date(aresponses: ResponsesMockServer) -> None:
+async def test_get_system_empty_install_date() -> None:
     """Test get system handling with an empty install date."""
-    aresponses.add(
-        "pvoutput.org",
-        "/service/r2/getsystem.jsp",
-        "GET",
-        aresponses.Response(
+    with aioresponses() as mocked:
+        mocked.get(
+            "https://pvoutput.org/service/r2/getsystem.jsp",
             status=200,
-            headers={"Content-Type": "text/plain"},
-            text=(
+            body=(
                 "Frenck,5015,1234,17,295,JA solar JAM-300,1,5000,"
                 "SolarEdge SE5000H,S,20.0,Low,,51.1234,6.1234,5;;0"
             ),
-        ),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
-        system = await pvoutput.system()
+            content_type="text/plain",
+        )
+        async with aiohttp.ClientSession() as session:
+            pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            system = await pvoutput.system()
 
     assert system.install_date is None
