@@ -5,10 +5,11 @@ from __future__ import annotations
 import asyncio
 import socket
 from dataclasses import dataclass
+from datetime import UTC, date, datetime, time
 from typing import Any, Self
 
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
-from aiohttp.hdrs import METH_GET
+from aiohttp.hdrs import METH_GET, METH_POST
 from yarl import URL
 
 from .exceptions import (
@@ -166,6 +167,62 @@ class PVOutput:
                 )
             ),
         )
+
+    # pylint: disable-next=too-many-arguments
+    async def add_status(  # noqa: PLR0913
+        self,
+        *,
+        energy_generation: int | None = None,
+        power_generation: int | None = None,
+        energy_consumption: int | None = None,
+        power_consumption: int | None = None,
+        temperature: float | None = None,
+        voltage: float | None = None,
+        cumulative: bool = False,
+        net: bool = False,
+        reported_date: date | None = None,
+        reported_time: time | None = None,
+    ) -> None:
+        """Upload a live status update to PVOutput.
+
+        Args:
+        ----
+            energy_generation: Energy generation in watt hours (Wh).
+            power_generation: Power generation in watts (W).
+            energy_consumption: Energy consumption in watt hours (Wh).
+            power_consumption: Power consumption in watts (W).
+            temperature: Temperature in celsius (C).
+            voltage: Voltage in volts (V).
+            cumulative: Whether energy values are lifetime cumulative.
+            net: Whether values are net import/export.
+            reported_date: Date of the status. Defaults to today.
+            reported_time: Time of the status. Defaults to now.
+
+        """
+        now = datetime.now(tz=UTC)
+        data: dict[str, str] = {
+            "d": (reported_date or now.date()).strftime("%Y%m%d"),
+            "t": (reported_time or now.time()).strftime("%H:%M"),
+        }
+
+        if energy_generation is not None:
+            data["v1"] = str(energy_generation)
+        if power_generation is not None:
+            data["v2"] = str(power_generation)
+        if energy_consumption is not None:
+            data["v3"] = str(energy_consumption)
+        if power_consumption is not None:
+            data["v4"] = str(power_consumption)
+        if temperature is not None:
+            data["v5"] = str(temperature)
+        if voltage is not None:
+            data["v6"] = str(voltage)
+        if cumulative:
+            data["c1"] = "1"
+        if net:
+            data["n"] = "1"
+
+        await self._request("addstatus.jsp", method=METH_POST, data=data)
 
     async def close(self) -> None:
         """Close open client session."""
