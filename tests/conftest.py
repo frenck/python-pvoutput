@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
@@ -13,9 +14,9 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 AIOHTTP_REQUIRES_STREAM_WRITER = (
-    "stream_writer" in aiohttp.ClientResponse.__init__.__code__.co_varnames
+    "stream_writer" in inspect.signature(aiohttp.ClientResponse.__init__).parameters
 )
-MOCK_STREAM_WRITER = SimpleNamespace(output_size=0)
+_mock_stream_writer = SimpleNamespace(output_size=0)
 
 
 class AioresponsesClientResponse(aioresponses_core.ClientResponse):
@@ -23,7 +24,7 @@ class AioresponsesClientResponse(aioresponses_core.ClientResponse):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize and provide a stream_writer for aiohttp 3.14+."""
-        kwargs.setdefault("stream_writer", MOCK_STREAM_WRITER)
+        kwargs.setdefault("stream_writer", _mock_stream_writer)
         super().__init__(*args, **kwargs)
 
 
