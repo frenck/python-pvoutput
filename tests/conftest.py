@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 AIOHTTP_REQUIRES_STREAM_WRITER = (
     "stream_writer" in aiohttp.ClientResponse.__init__.__code__.co_varnames
 )
-AIOHTTP_STREAM_WRITER = SimpleNamespace(output_size=0)
+DEFAULT_STREAM_WRITER = SimpleNamespace(output_size=0)
 
 
 class AioresponsesClientResponse(aioresponses_core.ClientResponse):
@@ -23,7 +23,7 @@ class AioresponsesClientResponse(aioresponses_core.ClientResponse):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize and provide a stream_writer for aiohttp 3.14+."""
-        kwargs.setdefault("stream_writer", AIOHTTP_STREAM_WRITER)
+        kwargs.setdefault("stream_writer", DEFAULT_STREAM_WRITER)
         super().__init__(*args, **kwargs)
 
 
