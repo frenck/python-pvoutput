@@ -34,9 +34,10 @@ def setup_aioresponses_aiohttp_compat() -> Generator[None, None, None]:
         yield
         return
 
-    monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr(aioresponses_core, "ClientResponse", AioresponsesClientResponse)
-    try:
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(
+            aioresponses_core,
+            "ClientResponse",
+            AioresponsesClientResponse,
+        )
         yield
-    finally:
-        monkeypatch.undo()
