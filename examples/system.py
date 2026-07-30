@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Franck Nijhof <opensource@frenck.dev>
 # pylint: disable=W0621
 """Asynchronous client for the PVOutput API."""
 

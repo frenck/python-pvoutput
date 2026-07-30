@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Franck Nijhof <opensource@frenck.dev>
 """Exceptions for the PVOutput API client."""
 
 

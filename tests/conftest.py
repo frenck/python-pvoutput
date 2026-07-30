@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Franck Nijhof <opensource@frenck.dev>
 """Test compatibility fixtures."""
 
 from __future__ import annotations
