@@ -72,16 +72,16 @@ class Status(DataClassDictMixin):
     def reported_datetime(self) -> datetime:
         """Return the timestamp of the status data.
 
+        PVOutput reports the date and time in the local time of the system,
+        without telling which timezone that is. The returned datetime is
+        therefore naive, the caller has to attach the timezone of the system.
+
         Returns
         -------
-            A datetime object.
+            A naive datetime object, in the local time of the system.
 
         """
-        return datetime.combine(
-            self.reported_date,
-            self.reported_time,
-            tzinfo=UTC,
-        )
+        return datetime.combine(self.reported_date, self.reported_time)
 
 
 @dataclass

@@ -3,7 +3,7 @@
 
 # pylint: disable=protected-access
 import socket
-from datetime import UTC, date, datetime, time
+from datetime import date, datetime, time
 from unittest.mock import patch
 
 import aiohttp
@@ -148,14 +148,8 @@ async def test_get_status(snapshot: SnapshotAssertion) -> None:
 
     assert status.reported_date == date(2021, 12, 22)
     assert status.reported_time == time(18, 0)
-    assert status.reported_datetime == datetime(
-        2021,
-        12,
-        22,
-        18,
-        0,
-        tzinfo=UTC,
-    )
+    assert status.reported_datetime == datetime(2021, 12, 22, 18, 0)  # noqa: DTZ001
+    assert status.reported_datetime.tzinfo is None
     assert status.energy_consumption is None
     assert status.energy_generation == 3636
     assert status.normalized_output is None
@@ -297,14 +291,20 @@ async def test_add_status_defaults_date_time() -> None:
         )
         async with aiohttp.ClientSession() as session:
             pvoutput = PVOutput(api_key="fake", system_id=12345, session=session)
+            before = datetime.now().astimezone()
             await pvoutput.add_status(power_generation=500)
+            after = datetime.now().astimezone()
 
         assert mocked.requests is not None
         data = mocked.requests[
             ("POST", URL("https://pvoutput.org/service/r2/addstatus.jsp"))
         ][0].kwargs["data"]
-        assert "d" in data
-        assert "t" in data
+
+        # The default is the local time of this machine, not UTC
+        assert (data["d"], data["t"]) in {
+            (moment.strftime("%Y%m%d"), moment.strftime("%H:%M"))
+            for moment in (before, after)
+        }
         assert data["v2"] == "500"
 
 

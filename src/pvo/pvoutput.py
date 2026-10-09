@@ -6,7 +6,7 @@ from __future__ import annotations
 import asyncio
 import socket
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, time
+from datetime import date, datetime, time
 from typing import Any, Self
 
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
@@ -196,11 +196,15 @@ class PVOutput:
             voltage: Voltage in volts (V).
             cumulative: Whether energy values are lifetime cumulative.
             net: Whether values are net import/export.
-            reported_date: Date of the status. Defaults to today.
-            reported_time: Time of the status. Defaults to now.
+            reported_date: Date of the status, in the local time of the
+                system. Defaults to today on this machine.
+            reported_time: Time of the status, in the local time of the
+                system. Defaults to now on this machine.
 
         """
-        now = datetime.now(tz=UTC)
+        # PVOutput expects the local time of the system, so default to the
+        # local time of this machine, like other PVOutput uploaders do.
+        now = datetime.now().astimezone()
         data: dict[str, str] = {
             "d": (reported_date or now.date()).strftime("%Y%m%d"),
             "t": (reported_time or now.time()).strftime("%H:%M"),
